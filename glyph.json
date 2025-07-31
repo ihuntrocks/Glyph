@@ -1,0 +1,179 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Generate Documentation with Glyph",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Script Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Give a brief overview of your script.",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Provide script file(s)",
+              "fieldType": "file",
+              "multipleFiles": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        -384
+      ],
+      "id": "****-****-****-****-************",
+      "name": "Initial Web Form Submission",
+      "webhookId": "****-****-****-****-************",
+      "notes": "A web form hosted on Steamed Hams. The form gathers the script name, an overview, and the script file."
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "binaryPropertyName": "=Provide_script_file_s_",
+        "destinationKey": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        224,
+        -384
+      ],
+      "id": "****-****-****-****-************",
+      "name": "Extract contents of uploaded script",
+      "notes": "Ensures the uploaded script file is correctly extracted as text for processing."
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are an expert technical writer specializing in Unix and Linux man pages. Your task is to turn the provided overview and code into clear, professional man-page–style documentation.\n\nOutput must include these standard sections as applicable:\n\nNAME\n: A one-line description of the command, configuration, or tool.\n\nSYNOPSIS\n: Example command-line usage, JSON schema usage, or script invocation.\n\nDESCRIPTION\n: A detailed explanation of what it does and how it works.\n\nOPTIONS\n: Explain all flags, parameters, configuration keys, variable names, and their types and defaults. Include all configurable values exactly as shown in the input. Use plain, line-by-line text without tables.\n\nEXAMPLES\n: Show typical or recommended usage.\n\nSEE ALSO\n: Always include this section with any relevant related tools, documentation, or references. Do not include section numbers in parentheses.\n\nInstructions:\n\nAnalyze the overview and code carefully. Include all inline comments, docstrings, and notes from the script. Preserve all parameter names, defaults, node labels, and configuration keys exactly as given. Describe each function, logical section, and step in order, matching the flow of the input. Extract all meaningful options, arguments, usage details, and configuration data. Use concise, precise, formal Unix man page style. Document JSON or structured data keys and values in OPTIONS using line-by-line text. Use ALL CAPS for section headings but no underlines or other decorations. Do not use asterisks, bullets, numbered lists, or inline code blocks. Do not use section numbers. Only include functionality present in the user’s input. Avoid summarizing or rephrasing in ways that omit details. Ensure the final output reads like an authentic Unix/Linux man page entry that fully captures the user’s provided material.\n\nUse the following user-provided data:\n\nOverview: {{ $('Initial Web Form Submission').item.json['Give a brief overview of your script.'] }}\n\nScript: {{ $json.text }}",
+              "role": "system"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.2,
+          "topP": 0.2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        448,
+        -384
+      ],
+      "id": "****-****-****-****-************",
+      "name": "GPT 4.1 Produces documentation",
+      "credentials": {
+        "openAiApi": {
+          "id": "****************",
+          "name": "********************"
+        }
+      },
+      "notes": "GPT 4.1 creates Unix/Linux man page style documentation using the overview and script file, analyzing comments, notes, and function structure."
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "message.content",
+        "options": {
+          "fileName": "={{ $('Initial Web Form Submission').item.json['Script Name'] }}"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        832,
+        -384
+      ],
+      "id": "****-****-****-****-************",
+      "name": "Documentation converted to txt file",
+      "notes": "Ensures the documentation output is in txt format, ready for download."
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "respondWith": "returnBinary",
+        "completionTitle": "Download Documentation from Glyph",
+        "completionMessage": "Your documentation is complete!",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        -384
+      ],
+      "id": "****-****-****-****-************",
+      "name": "Form ends with file download",
+      "webhookId": "****-****-****-****-************",
+      "notes": "Displays the form end screen, which also triggers the documentation txt file download option."
+    }
+  ],
+  "connections": {
+    "Initial Web Form Submission": {
+      "main": [
+        [
+          {
+            "node": "Extract contents of uploaded script",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract contents of uploaded script": {
+      "main": [
+        [
+          {
+            "node": "GPT 4.1 Produces documentation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT 4.1 Produces documentation": {
+      "main": [
+        [
+          {
+            "node": "Documentation converted to txt file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Documentation converted to txt file": {
+      "main": [
+        [
+          {
+            "node": "Form ends with file download",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "************************************************************"
+  }
+}
